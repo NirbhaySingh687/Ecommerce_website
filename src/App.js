@@ -12,6 +12,7 @@ import { onAuthStateChanged } from "firebase/auth"
 import { setCurrentUser } from "./redux/user/user.action"
 import { selectCurrentUser } from "./redux/user/user.selector";
 import CheckoutPage from "./pages/checkout/checkout";
+import CollectionPage from "./components/collection/collection";
 
 class App extends Component{
 
@@ -36,10 +37,11 @@ class App extends Component{
           <div>
               <Header />
               <Routes>
-                  <Route exact path="/" element={<Homepage />}/>
+                  <Route exact path="/" element={<Homepage />} />
                   <Route exact path="/shop" element={<Shop />}/>
                   <Route exact path="/signIn" element={<SignInAndSignUp />}/>
                   <Route exact path="/checkout" element={<CheckoutPage />}/>
+                  //<Route exact path="/shop/:categoryId" element={<CollectionPage />}/>
               </Routes>
           </div>
       );

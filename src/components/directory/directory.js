@@ -10,7 +10,7 @@ function Directory({ sections }){
         <div className="directory-menu">
             {
                 sections.map((section) => (
-                    <MenuItem key={section.id} title={section.title} imageUrl={section.image}/>
+                    <MenuItem key={section.id} title={section.title} imageUrl={section.imageUrl} {...section}/>
                 ))
             }
         </div>
