@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, getDoc, doc, setDoc, collection, addDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, getDoc, doc, setDoc, collection,  updateDoc, writeBatch } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 
 
@@ -44,6 +44,30 @@ export const createUserProfileDocument = async (userAuth, additionalData = {})=>
 
         await setDoc(doc(fireStore, "users", userAuth.uid), data);
     }
+}
+
+export const addCollectionAndDocuments = async (collectionKey, objectToAdd) => {
+    const batch = writeBatch(fireStore)
+    objectToAdd.forEach((obj => {
+        batch.set(doc(fireStore, collectionKey, obj.title), obj);
+    }))
+    return await batch.commit();
+}
+
+export const covertCollectionsSnapshotToMap = (collections) => {
+    const transformedCollections = []
+    collections.forEach((doc) => {
+        const { title, items } = doc.data();
+        transformedCollections.push({
+            routeName: encodeURI(title.toLowerCase()),
+            id: doc.id,
+            title, items
+        })
+    });
+    return transformedCollections.reduce((accumulator, collection) => {
+        accumulator[collection.title.toLowerCase()] = collection
+        return accumulator
+    }, {})
 }
 
 export { auth, fireStore, signInWithGoogle }

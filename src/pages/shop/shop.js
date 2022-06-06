@@ -1,13 +1,31 @@
-import React from "react";
+import React, {Component} from "react";
 import CollectionOverview from "../../components/collection-overview/collection-overview";
+import { fireStore, covertCollectionsSnapshotToMap } from "../../firebase";
+import { collection, getDocs } from "firebase/firestore"
+import { connect } from "react-redux";
+import { updateCollections } from "../../redux/shop/shop.actions";
 
-function shop({ collections }){
-    return(
-        <div className="shop-page">
-            <CollectionOverview  />
-        </div>
-    )
+class shop extends Component{
+
+    componentDidMount = async ()=> {
+        const { updateCollections } = this.props
+        const querySnapshot = await getDocs(collection(fireStore, "collections"));
+        const collectionMap = covertCollectionsSnapshotToMap(querySnapshot)
+        updateCollections(collectionMap)
+    }
+
+    render() {
+        return(
+            <div className="shop-page">
+                <CollectionOverview  />
+            </div>
+        )
+    }
 }
 
+const mapDispatchToProps = dispatch => ({
+    updateCollections: collectionMap => dispatch(updateCollections(collectionMap))
+})
 
-export default shop
+
+export default connect(null, mapDispatchToProps)(shop)

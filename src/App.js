@@ -7,16 +7,23 @@ import Shop from "./pages/shop/shop";
 import Header from "./components/header/header";
 import SignInAndSignUp from "./pages/sign-in-and-sign-up/sign-in-and-sign-up";
 import { connect} from "react-redux";
-import {auth, createUserProfileDocument} from "./firebase";
+import {auth, covertCollectionsSnapshotToMap, createUserProfileDocument, fireStore} from "./firebase";
 import { onAuthStateChanged } from "firebase/auth"
 import { setCurrentUser } from "./redux/user/user.action"
 import { selectCurrentUser } from "./redux/user/user.selector";
 import CheckoutPage from "./pages/checkout/checkout";
 import CollectionPage from "./components/collection/collection";
+import {collection, getDocs} from "firebase/firestore";
+import {updateCollections} from "./redux/shop/shop.actions";
+import withSpinner from "./components/with-spinner/With-Spinner";
+
+const CollectionPageWithSpinner = withSpinner(CollectionPage)
 
 class App extends Component{
-
-    componentDidMount() {
+    state = {
+        loading : true
+    }
+    componentDidMount = async () =>{
         this.unsubcribeFromAuth = onAuthStateChanged(auth, async user => {
             if(user){
                 this.props.setCurrentUser({
@@ -26,6 +33,11 @@ class App extends Component{
                 await createUserProfileDocument(user)
             }
         })
+        const { updateCollections } = this.props
+        const querySnapshot = await getDocs(collection(fireStore, "collections"));
+        const collectionMap = covertCollectionsSnapshotToMap(querySnapshot)
+        updateCollections(collectionMap)
+        this.setState({ loading: false })
     }
 
     componentWillUnmount() {
@@ -41,7 +53,11 @@ class App extends Component{
                   <Route exact path="/shop" element={<Shop />}/>
                   <Route exact path="/signIn" element={<SignInAndSignUp />}/>
                   <Route exact path="/checkout" element={<CheckoutPage />}/>
-                  //<Route exact path="/shop/:categoryId" element={<CollectionPage />}/>
+                  <Route exact path="/shop/:categoryId" element={
+                      <CollectionPageWithSpinner isLoading={this.state.loading}>
+                          <CollectionPage />
+                      </CollectionPageWithSpinner>
+                  }/>
               </Routes>
           </div>
       );
@@ -49,11 +65,12 @@ class App extends Component{
 }
 
 const mapStateToProps = createStructuredSelector({
-    currentUser: selectCurrentUser
+    currentUser: selectCurrentUser,
 })
 
 const mapDispatchToProps = dispatch => ({
-    setCurrentUser: user => dispatch(setCurrentUser(user))
+    setCurrentUser: user => dispatch(setCurrentUser(user)),
+    updateCollections: collectionMap => dispatch(updateCollections(collectionMap))
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);
